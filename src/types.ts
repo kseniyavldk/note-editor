@@ -1,5 +1,3 @@
-//import { Content } from "@tiptap/react";
-
 import { JSONContent } from "@tiptap/react";
 
 export type Note = {

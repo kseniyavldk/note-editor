@@ -2,6 +2,7 @@ import { JSONContent } from "@tiptap/react";
 import { useMemo, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { AiFillDelete } from "react-icons/Ai";
+import { FaPencilAlt } from "react-icons/Fa";
 import styles from "./App.module.css";
 import { Note } from "./types";
 import storage from "./storage";
@@ -10,7 +11,7 @@ import NoteEditor from "./NoteEditor";
 import { extractTags } from "./utils";
 import { generateText } from "./utils";
 import StarterKit from "@tiptap/starter-kit";
-import Multiselect from "multiselect-react-dropdown";
+import Select from "react-select";
 
 const extensions = [StarterKit];
 const STORAGE_KEY = "notes";
@@ -40,6 +41,7 @@ const saveNote = debounce((note: Note) => {
 function App() {
   const [notes, setNotes] = useState<Record<string, Note>>(() => loadNotes());
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const activeNote = activeNoteId ? notes[activeNoteId] : null;
 
@@ -84,8 +86,6 @@ function App() {
 
   const handleChangeActiveNote = (id: string) => {
     setActiveNoteId(id);
-    console.log(options);
-    console.log("handleChangeActiveNote");
   };
 
   const handleDeleteNote = (noteId: string) => {
@@ -107,34 +107,45 @@ function App() {
       .reduce<string[]>((allTags, noteId) => {
         return allTags.concat(notes[noteId].tags);
       }, [])
-      .filter((tag, index, allTags) => allTags.indexOf(tag) === index)
-      .map((tag) => ({
-        name: tag,
-        id: tag,
-      }));
+      .filter((tag, index, allTags) => allTags.indexOf(tag) === index);
   }, []);
+
+  const filteredNotes =
+    selectedTags.length === 0
+      ? notesList
+      : notesList.filter((note) =>
+          selectedTags.some((tag) => note.tags.includes(tag))
+        );
+
+  /* console.log("selectedTags:", selectedTags);
+  console.log("filteredNotes:", filteredNotes);
+
+  console.log("options:", options); */
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.sidebar}>
-        <Multiselect
-          options={options}
-          /* selectedValues={this.state.selectedValue} 
-          onSelect={this.onSelect} 
-          onRemove={this.onRemove}  */
-          className={styles.multiselect}
-          displayValue="name"
+        <Select
+          options={options.map((tag) => ({ value: tag, label: tag }))}
+          value={selectedTags.map((tag) => ({ value: tag, label: tag }))}
+          isMulti
+          onChange={(selectedOptions) =>
+            setSelectedTags(selectedOptions.map((option) => option.value))
+          }
+          className={styles.select}
         />
         <button className={styles.sidebarButton} onClick={handleCreateNewNote}>
           New Note
         </button>
         <div className={styles.sidebarList}>
-          {notesList.map((note) => (
+          {filteredNotes.map((note) => (
             <div
               key={note.id}
               className={
                 note.id === activeNoteId
                   ? styles.sidebarItemActive
+                  : selectedTags.some((tag) => note.tags.includes(tag))
+                  ? styles.sidebarItemHighlighted
                   : styles.sidebarItem
               }
             >
@@ -176,8 +187,10 @@ function App() {
         />
       ) : (
         <div className={styles.noteWrite}>
-          <p>Create a new note or select an existing one.</p>
-          {/* <img src="../src/public/iconwritting.png" alt="Example Image" /> */}
+          <p className={styles.pencilAlt}>
+            <FaPencilAlt />
+            Create a new note or select an existing one.
+          </p>
         </div>
       )}
     </div>

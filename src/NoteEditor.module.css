@@ -21,7 +21,7 @@
 }
 
 .textEditorContent {
-    outline: auto;
+    outline: none;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -43,6 +43,16 @@
 }
 
 .toolbarButtonActive {
-    composes: toolbarButton;
+    /* composes: toolbarButton; */
     background-color: #e2e8f0;
+}
+
+.tag {
+    margin: 12px 5px;
+    border-radius: 5px;
+    border: 1px;
+    background-color: #11a3f7;
+    color: #333;
+    padding: 3px 10px;
+    display: inline-block;
 }
