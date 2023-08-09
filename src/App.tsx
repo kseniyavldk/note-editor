@@ -1,5 +1,5 @@
 import { JSONContent } from "@tiptap/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { v4 as uuid } from "uuid";
 import { AiFillDelete } from "react-icons/Ai";
 import styles from "./App.module.css";
@@ -7,7 +7,12 @@ import { Note } from "./types";
 import storage from "./storage";
 import debounce from "./debounce";
 import NoteEditor from "./NoteEditor";
+import { extractTags } from "./utils";
+import { generateText } from "./utils";
+import StarterKit from "@tiptap/starter-kit";
+import Multiselect from "multiselect-react-dropdown";
 
+const extensions = [StarterKit];
 const STORAGE_KEY = "notes";
 
 const loadNotes = () => {
@@ -46,8 +51,9 @@ function App() {
     const updatedNote = {
       ...notes[noteId],
       updateAt: new Date(),
-      content,
+      content: content,
       title,
+      tags: extractTags(generateText(content)),
     };
     setNotes((notes) => ({
       ...notes,
@@ -57,11 +63,16 @@ function App() {
   };
 
   const handleCreateNewNote = () => {
+    const defaultContent = JSON.parse(
+      '{"type":"doc","content":[{"type":"heading","attrs":{"level":1},"content":[{"type":"text","text":"New note"}]}]}'
+    );
+
     const newNote = {
       id: uuid(),
       title: "New note",
-      content: `<h1>New note</h1>`,
+      content: defaultContent,
       updateAt: new Date(),
+      tags: [],
     };
     setNotes((notes) => ({
       ...notes,
@@ -73,6 +84,8 @@ function App() {
 
   const handleChangeActiveNote = (id: string) => {
     setActiveNoteId(id);
+    console.log(options);
+    console.log("handleChangeActiveNote");
   };
 
   const handleDeleteNote = (noteId: string) => {
@@ -89,9 +102,29 @@ function App() {
     (a, b) => b.updateAt.getTime() - a.updateAt.getTime()
   );
 
+  const options = useMemo(() => {
+    return Object.keys(notes)
+      .reduce<string[]>((allTags, noteId) => {
+        return allTags.concat(notes[noteId].tags);
+      }, [])
+      .filter((tag, index, allTags) => allTags.indexOf(tag) === index)
+      .map((tag) => ({
+        name: tag,
+        id: tag,
+      }));
+  }, []);
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.sidebar}>
+        <Multiselect
+          options={options}
+          /* selectedValues={this.state.selectedValue} 
+          onSelect={this.onSelect} 
+          onRemove={this.onRemove}  */
+          className={styles.multiselect}
+          displayValue="name"
+        />
         <button className={styles.sidebarButton} onClick={handleCreateNewNote}>
           New Note
         </button>
@@ -128,18 +161,26 @@ function App() {
           ))}
         </div>
       </div>
+
       {activeNote ? (
         <NoteEditor
           note={activeNote}
           onChange={(content, title) =>
             handleChangeNoteContent(activeNote.id, content, title)
           }
+          extensions={extensions}
+          content={{
+            type: "doc",
+            content: [],
+          }}
         />
       ) : (
-        <div>Create a new note or select an existing one.</div>
+        <div className={styles.noteWrite}>
+          <p>Create a new note or select an existing one.</p>
+          {/* <img src="../src/public/iconwritting.png" alt="Example Image" /> */}
+        </div>
       )}
     </div>
   );
 }
-
 export default App;

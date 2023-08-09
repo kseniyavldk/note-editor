@@ -52,7 +52,7 @@
 }
 
 .sidebarItemActive {
-    composes: sidebarItem;
+    /*composes: sidebarItem;*/
     background-color: #e2e8f0;
 }
 
@@ -79,4 +79,17 @@
 
 .deleteButton:hover {
     background-color: #d32f2f;
+}
+
+.multiselect {
+    padding: 8px;
+}
+
+.noteWrite {
+    text-align: center;
+}
+
+.noteWrite img {
+    width: 200px;
+    margin-top: 20px;
 }
