@@ -1,8 +1,8 @@
 import { JSONContent } from "@tiptap/react";
 import { useMemo, useState } from "react";
 import { v4 as uuid } from "uuid";
-import { AiFillDelete } from "react-icons/Ai";
-import { FaPencilAlt } from "react-icons/Fa";
+import { AiFillDelete } from "react-icons/ai";
+import { FaPencilAlt } from "react-icons/fa";
 import styles from "./App.module.css";
 import { Note } from "./types";
 import storage from "./storage";
