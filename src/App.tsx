@@ -42,6 +42,7 @@ function App() {
   const [notes, setNotes] = useState<Record<string, Note>>(() => loadNotes());
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagOptions, setTagOptions] = useState<string[]>([]);
 
   const activeNote = activeNoteId ? notes[activeNoteId] : null;
 
@@ -62,6 +63,12 @@ function App() {
       [noteId]: updatedNote,
     }));
     saveNote(updatedNote);
+    const newTags = extractTags(generateText(content));
+    const uniqueNewTags = newTags.filter((tag) => !tagOptions.includes(tag));
+
+    if (uniqueNewTags.length > 0) {
+      setTagOptions((prevOptions) => [...prevOptions, ...uniqueNewTags]);
+    }
   };
 
   const handleCreateNewNote = () => {
@@ -103,12 +110,14 @@ function App() {
   );
 
   const options = useMemo(() => {
-    return Object.keys(notes)
+    const uniqueTags = Object.keys(notes)
       .reduce<string[]>((allTags, noteId) => {
         return allTags.concat(notes[noteId].tags);
       }, [])
       .filter((tag, index, allTags) => allTags.indexOf(tag) === index);
-  }, []);
+
+    return uniqueTags.sort();
+  }, [notes]);
 
   const filteredNotes =
     selectedTags.length === 0
@@ -116,11 +125,6 @@ function App() {
       : notesList.filter((note) =>
           selectedTags.some((tag) => note.tags.includes(tag))
         );
-
-  /* console.log("selectedTags:", selectedTags);
-  console.log("filteredNotes:", filteredNotes);
-
-  console.log("options:", options); */
 
   return (
     <div className={styles.pageContainer}>
